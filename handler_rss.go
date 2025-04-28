@@ -3,10 +3,14 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
+	"github.com/Weso1ek/gator-blog-aggregator/internal/database"
+	"github.com/google/uuid"
 	"io"
 	"net/http"
+	"time"
 )
 
 type RSSFeed struct {
@@ -74,6 +78,34 @@ func handlerRssGet(s *state, cmd command) error {
 		fmt.Println("====")
 		fmt.Println(j.Description)
 	}
+
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	name := cmd.Args[0]
+	url := cmd.Args[1]
+
+	currentUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feed, errCreate := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		Name:      name,
+		Url:       url,
+		UserID:    currentUser.ID,
+		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+		UpdatedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	})
+
+	if errCreate != nil {
+		return errCreate
+	}
+
+	fmt.Println(feed.Name)
+	fmt.Println(feed.Url)
 
 	return nil
 }
