@@ -82,6 +82,22 @@ func handlerRssGet(s *state, cmd command) error {
 	return nil
 }
 
+func handlerGetFeeds(s *state, cmd command) error {
+
+	feeds, err := s.db.GetFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, j := range feeds {
+		fmt.Println(j.Name)
+		fmt.Println(j.Url)
+		fmt.Println(j.Name_2)
+	}
+
+	return nil
+}
+
 func handlerAddFeed(s *state, cmd command) error {
 	name := cmd.Args[0]
 	url := cmd.Args[1]
