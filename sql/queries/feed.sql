@@ -14,3 +14,7 @@ VALUES (
 SELECT feed.name, feed.url, users.name FROM feed
 LEFT JOIN users ON feed.user_id = users.id
 ORDER BY feed.name ASC;
+
+-- name: GetFeedsByUrl :one
+SELECT * FROM feed
+WHERE url = $1 LIMIT 1;
