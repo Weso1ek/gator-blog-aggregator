@@ -98,14 +98,9 @@ func handlerGetFeeds(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, currentUser database.User) error {
 	name := cmd.Args[0]
 	url := cmd.Args[1]
-
-	currentUser, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return err
-	}
 
 	feed, errCreate := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -138,17 +133,12 @@ func handlerAddFeed(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, currentUser database.User) error {
 	url := cmd.Args[0]
 
 	feedUrl, err := s.db.GetFeedsByUrl(context.Background(), url)
 	if err != nil {
 		return err
-	}
-
-	currentUser, errCurrent := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if errCurrent != nil {
-		return errCurrent
 	}
 
 	_, errCreate := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
@@ -169,12 +159,27 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
-	currentUser, errCurrent := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if errCurrent != nil {
-		return errCurrent
+func handlerUnfollow(s *state, cmd command, currentUser database.User) error {
+	url := cmd.Args[0]
+
+	feedUrl, err := s.db.GetFeedsByUrl(context.Background(), url)
+	if err != nil {
+		return err
 	}
 
+	errDelete := s.db.DeleteFeedFollow(context.Background(), database.DeleteFeedFollowParams{
+		FeedID: feedUrl.ID,
+		UserID: currentUser.ID,
+	})
+
+	if errDelete != nil {
+		return errDelete
+	}
+
+	return nil
+}
+
+func handlerFollowing(s *state, cmd command, currentUser database.User) error {
 	fmt.Println(currentUser.Name)
 	fmt.Println(currentUser.ID)
 
