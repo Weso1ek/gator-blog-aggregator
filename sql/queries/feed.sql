@@ -30,3 +30,4 @@ WHERE id = $1
 SELECT * FROM feed
 ORDER BY last_fetched_at ASC NULLS FIRST
     LIMIT 1;
+
